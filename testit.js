@@ -1,10 +1,8 @@
 (function(scope) {
 
-'use strict'
-
 var rootTimeDone = false;
 
-var testit = function() {
+function Testit () {
     /**
      * group class which will contain tests
      * In addition it will be used to prevent wrong code from falling.
@@ -19,7 +17,7 @@ var testit = function() {
      * @attribute {Object} result       counters for tests and groups
      * @attribute {array}  stack        array of tests and groups
      */
-    var group = function() {
+    function Group () {
         this.type = 'group';
         this.name = undefined;
         this.status = undefined;
@@ -47,7 +45,7 @@ var testit = function() {
      * @attribute {Number} time         time in ms spent on test
      * @attribute {Array}  argument     all received arguments
      */
-    var test = function() {
+    function Test () {
         this.type = 'test';
         this.status = undefined;
         this.comment = undefined;
@@ -62,7 +60,7 @@ var testit = function() {
      * @public
      * @type {group}
      */
-    var root = new group();
+    var root = new Group();
     this.root = root;
     root.name = 'root';
     root.time = new Date().getTime();
@@ -76,7 +74,7 @@ var testit = function() {
      * @param  {Boolean}  excluded      if true - newgroup will not be added into currentlevel stack;
      * @return {Object}                 testit with link to new group
      */
-    function _makeGroup(name,fun,excluded) {
+    function _makeGroup (name, fun, excluded) {
         /** get timestamp */
         var time = new Date().getTime();
         
@@ -86,14 +84,18 @@ var testit = function() {
         var groupAlreadyExist = false;
         /** find group in current-level stack */
         for (var i in this.stack) {
-            if (this.stack[i].type !== 'group') continue;
+            if (this.stack[i].type !== 'group') {
+                continue;
+            }
             if (this.stack[i].name === name) {
                 newgroup = this.stack[i];
                 groupAlreadyExist = true;
                 break;
             }
         }
-        if (!groupAlreadyExist) newgroup = new group();
+        if (!groupAlreadyExist) {
+            newgroup = new Group();
+        }
         newgroup.name = name;
 
         /** add backlink to provide trace */
@@ -101,7 +103,9 @@ var testit = function() {
 
         /** set to pass as default. it's may be changed in some next lines */
         var oldstatus;
-        if (groupAlreadyExist) oldstatus = newgroup.status;
+        if (groupAlreadyExist) {
+            oldstatus = newgroup.status;
+        }
         newgroup.status ='pass';
 
         /**
@@ -123,7 +127,9 @@ var testit = function() {
         newgroup.time += new Date().getTime() - time;
 
         /** finally place this group into previous level stack (if it's a new group) */
-        if (!groupAlreadyExist && !excluded) this.stack.push(newgroup);
+        if (!groupAlreadyExist && !excluded) {
+            this.stack.push(newgroup);
+        }
 
         /** update counters */
         updateCounters(newgroup);
@@ -137,10 +143,12 @@ var testit = function() {
      * @param  {String} name    name of group which will be searched for
      * @return {Object}         group
      */
-    function _getGroup(name) {
+    function _getGroup (name) {
         var stack = this.stack;
         for (var i in stack) {
-            if (stack[i].type !== 'group') continue;
+            if (stack[i].type !== 'group') {
+                continue;
+            }
             if (stack[i].name === name) {
                 return stack[i];
             }
@@ -156,7 +164,7 @@ var testit = function() {
      * @param  {Function} fun       function contains tests and other groups
      * @return {Object}             testit with link to specified group
      */
-    function _group(name,fun) {
+    function _group (name, fun) {
         /**
          * Here may be 3 situation:
          *     this.link is root && root is root                - test.group() called in root scope
@@ -166,18 +174,20 @@ var testit = function() {
          * look at it with:
          *     console.log(name,'\nlink: ',this.link,'\nroot: ',root);
          */
-        var currentLevel = (this.link)?this.link:root;
+        var currentLevel = (this.link) ? this.link : root;
         var linkToGroup;
 
         switch (arguments.length) {
-            case 0 : throw new RangeError("test.group expect at least 1 argument");
-            case 1 : {
-                    linkToGroup = _getGroup.call(currentLevel,name);
-                } break;
-            case 2 : {
-                    linkToGroup = _makeGroup.call(currentLevel,name,fun,this.excluded);
-                } break;
-            default : throw new RangeError("test.group expect no more than 2 arguments");
+            case 0 : 
+                throw new RangeError("test.group expect at least 1 argument");
+            case 1 : 
+                linkToGroup = _getGroup.call(currentLevel, name);
+                break;
+            case 2 : 
+                linkToGroup = _makeGroup.call(currentLevel, name, fun, this.excluded);
+                break;
+            default : 
+                throw new RangeError("test.group expect no more than 2 arguments");
         }
 
         /** get trace for this group */
@@ -210,12 +220,12 @@ var testit = function() {
      * @param {Array} args    array of arguments
      * @return {Object}       testit with link to this test
      */
-    function _doTest(type,args) {
+    function _doTest (type, args) {
         /**
          * new instance of test
          * Most of code in this function will manipulate with it.
          */
-        var newtest = new test();
+        var newtest = new Test();
 
         /** fill newtest.agrument from method arguments */
         for (var i in args) {
@@ -224,17 +234,32 @@ var testit = function() {
 
         /** execute test-function specified by type */
         switch (type) {
-            case 'it' : _testIt(newtest); break;
-            case 'them' : _testThem(newtest); break;
-            case 'type' : _testType(newtest); break;
-            case 'types' : _testTypes(newtest); break;
+            case 'it' :
+                _testIt(newtest); 
+                break;
+            case 'them' :
+                _testThem(newtest); 
+                break;
+            case 'type' :
+                _testType(newtest); 
+                break;
+            case 'types' :
+                _testTypes(newtest); 
+                break;
         }
         
         /** calculate time, if .time was called before this test */
-        if (this.timestamp) newtest.time = new Date().getTime() - this.timestamp;
+        if (this.timestamp) {
+            newtest.time = new Date().getTime() - this.timestamp;
+        }
+        
+        /** save trace in every test*/
+        newtest.trace = getTrace();
 
         /** finally place this test into container stack */
-        if (!this.excluded) root.stack.push(newtest);
+        if (!this.excluded) {
+            root.stack.push(newtest);
+        }
 
         /** update counters of contained group */
         updateCounters(root);
@@ -258,7 +283,7 @@ var testit = function() {
      * @private
      * @param {Object}  testobj     test object, wich will be filled with result
      */
-    function _testIt(testobj){
+    function _testIt (testobj){
         switch (testobj.argument.length) {
             /** in case of no arguments - throw Reference error */
             case 0 : {
@@ -301,7 +326,7 @@ var testit = function() {
      * @private
      * @param  {Object} testobj     test object, wich will be filled with result
      */
-    function _testThem(testobj){
+    function _testThem (testobj) {
         switch (testobj.argument.length) {
             /** in case of no arguments - throw Reference error */
             case 0 : {
@@ -342,8 +367,8 @@ var testit = function() {
      * @private
      * @param  {Object} testobj     test object, wich will be filled with result
      */
-    function _testType(testobj) {
-        if (testobj.argument.length!==2) {
+    function _testType (testobj) {
+        if (testobj.argument.length !== 2) {
             testobj.status = 'error';
             testobj.error = generateError(new RangeError("expect two arguments"));
         } else if (_typeof(testobj.argument[1]) !== 'String') {
@@ -369,11 +394,11 @@ var testit = function() {
      * @private
      * @param  {Object} testobj     test object, wich will be filled with result
      */
-    function _testTypes(testobj) {
-        if (testobj.argument.length==0) {
+    function _testTypes (testobj) {
+        if (testobj.argument.length == 0) {
             testobj.status = 'error';
             testobj.error = generateError(new RangeError("at least one argument expected"));
-        } else if (testobj.argument.length>2) {
+        } else if (testobj.argument.length > 2) {
             testobj.status = 'error';
             testobj.error = generateError(new RangeError("maximum of two arguments expected"));
         } else if (_typeof(testobj.argument[0]) !== 'Array') {
@@ -387,7 +412,7 @@ var testit = function() {
             } else if (_typeof(testobj.argument[1]) !== 'String') {
                 testobj.status = 'error';
                 testobj.error = generateError(new TypeError("second argument should be a String"));
-             } else if (!arrayConsist(identifiedTypes,testobj.argument[1].toLowerCase())) {
+             } else if ( !arrayConsist( identifiedTypes, testobj.argument[1].toLowerCase() ) ) {
                 testobj.status = 'error';
                 testobj.error = generateError(new TypeError("second argument should be a standart type"));
             } else {
@@ -404,7 +429,7 @@ var testit = function() {
                 }
                 if (testobj.status !== 'fail') {
                     testobj.status = 'pass';
-                    testobj.description = 'arguments are '+types+' type';
+                    testobj.description = 'arguments are ' + types + ' type';
                 }
             }
         }
@@ -446,9 +471,11 @@ var testit = function() {
      * @type {Function}
      * @param  {String} text        user defined text, which will be used as a comment
      */
-    function _comment(text) {
+    function _comment (text) {
         /** add a comment, if there is something can be commented */
-        if (!this.link) throw new ReferenceError('comment can only be used in testit chain');
+        if (!this.link) {
+            throw new ReferenceError('comment can only be used in testit chain');
+        }
         this.link.comment = text;
 
         return this;
@@ -473,11 +500,31 @@ var testit = function() {
      * @param  {Function} fail  function to execute if test|group fail
      * @param  {Function} error function to execute if test|group cause an error
      */
-    function _callback(pass,fail,error) {
-        if (!this.link) throw new ReferenceError('callback can only be used in testit chain');
-        if (this.link.status === 'pass' && _typeof(pass) === 'Function' ) try {pass();} catch(e) {throw e;}
-        if (this.link.status === 'fail' && _typeof(fail) === 'Function' ) try {fail();} catch(e) {throw e;}
-        if (this.link.status === 'error' && _typeof(error) === 'Function' ) try {error();} catch(e) {throw e;}
+    function _callback (pass, fail, error) {
+        if (!this.link) {
+            throw new ReferenceError('callback can only be used in testit chain');
+        }
+        if (this.link.status === 'pass' && _typeof(pass) === 'Function' ) {
+            try {
+                pass();
+            } catch(e) {
+                throw e;
+            }
+        }
+        if (this.link.status === 'fail' && _typeof(fail) === 'Function' ) {
+            try {
+                fail();
+            } catch(e) {
+                throw e;
+            }
+        }
+        if (this.link.status === 'error' && _typeof(error) === 'Function' ) {
+            try {
+                error();
+            } catch(e) {
+                throw e;
+            }
+        }
 
         return this;
     }
@@ -499,11 +546,15 @@ var testit = function() {
      * @chainable chain-link
      * @param  {Number} level       Number of trace lines which will be added
      */
-    function _addTrace(level) {
-        if (!this.link) throw new ReferenceError('addTrace can only be used in testit chain');
+    function _addTrace (level) {
+        if (!this.link) {
+            throw new ReferenceError('addTrace can only be used in testit chain');
+        }
         if (this.trace) {
             var trace = this.trace
-            if (_typeof(level) === 'Number') trace = trace.split('\n').slice(0,level+1).join('\n');
+            if (_typeof(level) === 'Number') {
+                trace = trace.split('\n').slice(0,level+1).join('\n');
+            }
             this.link.trace = trace;
         }
 
@@ -523,7 +574,7 @@ var testit = function() {
      * @private
      * @return {boolean}            true - if test or group passed, false - otherwise.
      */
-    function _result() {
+    function _result () {
         if (this.link) {
             return (this.link.status == 'pass')? true : false;
         }
@@ -542,13 +593,18 @@ var testit = function() {
      * @private
      * @return                      single argument or array of arguments
      */
-    function _arguments() {
+    function _arguments () {
         if (this.link) {
-            if (this.link.type!=='test') return TypeError('groups don\'t return arguments');
+            if (this.link.type !== 'test') {
+                return TypeError('groups don\'t return arguments');
+            }
             switch (this.link.argument.length) {
-                case 0 : return undefined
-                case 1 : return this.link.argument[0];
-                default : return this.link.argument;
+                case 0 :
+                    return undefined;
+                case 1 : 
+                    return this.link.argument[0];
+                default : 
+                    return this.link.argument;
             }
         }
         return undefined;
@@ -567,14 +623,14 @@ var testit = function() {
      * type {Function}
      * @private
      */
-    function _done() {
+    function _done () {
         /** update time in root */
-        if (!rootTimeDone && root.name==='root') {
+        if (!rootTimeDone && root.name === 'root') {
             root.time = new Date().getTime() - root.time;
             rootTimeDone = true;
         }
 
-        var curentLevel = (this.link)?this.link:root;
+        curentLevel = (this.link) ? this.link : root;
 
         /** display result */
         _printConsole(curentLevel);
@@ -594,7 +650,7 @@ var testit = function() {
 
 
     /** update counters of contained object */
-    function updateCounters(link) {
+    function updateCounters (link) {
         link.result = {
             pass: 0,
             fail: 0,
@@ -605,20 +661,24 @@ var testit = function() {
             link.result.total++;
             switch (link.stack[i].status) {
                 case 'pass' : {
-                    link.result.pass++;
-                } break;
+                        link.result.pass++;
+                    } break;
                 case 'fail' : {
                     link.result.fail++;
-                } break;
+                    } break;
                 case 'error' : {
                     link.result.error++;
-                } break;
+                    } break;
             };
         };
         
-        if (link.result.error || link.error) {link.status='error'}
-        else if (link.result.fail) {link.status='fail'}
-        else {link.status='pass'}
+        if (link.result.error || link.error) {
+            link.status = 'error';
+        } else if (link.result.fail) {
+            link.status = 'fail';
+        } else {
+            link.status='pass';
+        }
 
         if (link.linkBack) {
             updateCounters(link.linkBack);
@@ -631,7 +691,7 @@ var testit = function() {
      * @private
      * @param  {Object} obj     group or test to display
      */
-    function _printConsole(obj) {
+    function _printConsole (obj) {
 
         /** colors for console.log %c */
         var green = "color: green",
@@ -648,33 +708,32 @@ var testit = function() {
                     /** if object have passed - make collapsed group*/
                     case 'pass' : {
                         console.groupCollapsed("%s - %c%s%c - %c%d%c/%c%d%c/%c%d%c (%c%d%c ms) %s"
-                                     ,obj.name,green,obj.status,normal
-                                     ,green,obj.result.pass,normal
-                                     ,red,obj.result.fail,normal
-                                     ,orange,obj.result.error,normal
-                                     ,blue,obj.time,normal,((obj.comment)?obj.comment:''));
+                                     ,obj.name, green, obj.status, normal
+                                     ,green, obj.result.pass, normal
+                                     ,red, obj.result.fail, normal
+                                     ,orange, obj.result.error, normal
+                                     ,blue, obj.time, normal, ((obj.comment) ? obj.comment : ''));
                     } break;
                     case 'fail' : {
                         console.group("%s - %c%s%c - %c%d%c/%c%d%c/%c%d%c (%c%d%c ms) %s"
-                                     ,obj.name,red,obj.status,normal
-                                     ,green,obj.result.pass,normal
-                                     ,red,obj.result.fail,normal
-                                     ,orange,obj.result.error,normal
-                                     ,blue,obj.time,normal,((obj.comment)?obj.comment:''));
+                                     ,obj.name, red, obj.status, normal
+                                     ,green, obj.result.pass, normal
+                                     ,red, obj.result.fail, normal
+                                     ,orange, obj.result.error, normal
+                                     ,blue, obj.time, normal, ((obj.comment) ? obj.comment : ''));
                     } break;
                     case 'error' : {
                         console.group("%s - %c%s%c - %c%d%c/%c%d%c/%c%d%c (%c%d%c ms) %s"
-                                     ,obj.name,orange,obj.status,normal
-                                     ,green,obj.result.pass,normal
-                                     ,red,obj.result.fail,normal
-                                     ,orange,obj.result.error,normal
-                                     ,blue,obj.time,normal,((obj.comment)?obj.comment:''));
+                                     ,obj.name, orange, obj.status, normal
+                                     ,green, obj.result.pass, normal
+                                     ,red, obj.result.fail, normal
+                                     ,orange, obj.result.error, normal
+                                     ,blue, obj.time, normal, ((obj.comment) ? obj.comment : ''));
                     } break;
                     /** if status is not defined - display error; finish displaying */
                     default : {
-                        console.error("No status in object %s",obj.name);
-                        return false;
-                    }
+                        console.error("No status in object %s", obj.name);
+                    } return false;
                 }
 
                 /** display description if defined */
@@ -698,8 +757,10 @@ var testit = function() {
                 /** display error if defined */
                 if (obj.error) {
                     // console.error(obj.error);
-                    console.group('%c%s%c: %s',orange,obj.error.type,normal,obj.error.message);
-                        if (obj.error.stack) console.log(obj.error.stack);
+                    console.group('%c%s%c: %s', orange, obj.error.type, normal, obj.error.message);
+                        if (obj.error.stack) {
+                            console.log(obj.error.stack);
+                        }
                         console.dir(obj.error.error);
                     console.groupEnd();
                 }
@@ -708,41 +769,43 @@ var testit = function() {
                 console.groupEnd();
 
             } break;
-            case 'test' : {
+            case 'test': {
                 /** display different results depending on status */
                 switch (obj.status) {
                     case 'pass' : {
                         /** if pass - collapse group*/
-                        console.groupCollapsed("%cpass%c: %s%s%c%s%c%s",green,normal
-                                              ,(obj.comment)?obj.comment:''
-                                              ,(obj.time)?' (':''
-                                              ,(obj.time)?blue:''
-                                              ,(obj.time)?obj.time:''
-                                              ,(obj.time)?normal:''
-                                              ,(obj.time)?' ms)':'');
+                        console.groupCollapsed("%cpass%c: %s%s%c%s%c%s", green, normal
+                                              ,(obj.comment) ? obj.comment : ''
+                                              ,(obj.time) ? ' (' : ''
+                                              ,(obj.time) ? blue : ''
+                                              ,(obj.time) ? obj.time : ''
+                                              ,(obj.time) ? normal : ''
+                                              ,(obj.time) ? ' ms)' : '');
                     } break;
                     case 'fail' : {
-                        console.group("%cfail%c: %s",red,normal
-                                              ,(obj.comment)?obj.comment:''
-                                              ,(obj.time)?' (':''
-                                              ,(obj.time)?blue:''
-                                              ,(obj.time)?obj.time:''
-                                              ,(obj.time)?normal:''
-                                              ,(obj.time)?' ms)':'');
+                        console.group("%cfail%c: %s", red, normal
+                                              ,(obj.comment) ? obj.comment : ''
+                                              ,(obj.time) ? ' (' : ''
+                                              ,(obj.time) ? blue : ''
+                                              ,(obj.time) ? obj.time : ''
+                                              ,(obj.time) ? normal : ''
+                                              ,(obj.time) ? ' ms)' : '');
                     } break;
                     case 'error' : {
-                        console.group("%cerror%c: %s",orange,normal
-                                              ,(obj.comment)?obj.comment:''
-                                              ,(obj.time)?' (':''
-                                              ,(obj.time)?blue:''
-                                              ,(obj.time)?obj.time:''
-                                              ,(obj.time)?normal:''
-                                              ,(obj.time)?' ms)':'');
+                        console.group("%cerror%c: %s", orange, normal
+                                              ,(obj.comment) ? obj.comment : ''
+                                              ,(obj.time) ? ' (' : ''
+                                              ,(obj.time) ? blue : ''
+                                              ,(obj.time) ? obj.time : ''
+                                              ,(obj.time) ? normal : ''
+                                              ,(obj.time) ? ' ms)' : '');
                     } break;
                 }
 
                 /** display description if defined */
-                if (obj.description) console.log(obj.description);
+                if (obj.description) {
+                    console.log(obj.description);
+                }
                 
                 /** display trace if defined */
                 if (obj.trace) {
@@ -752,8 +815,10 @@ var testit = function() {
                 /** display error if defined */
                 if (obj.error) {
                     // console.error(obj.error);
-                    console.group('%c%s%c: %s',orange,obj.error.type,normal,obj.error.message);
-                        if (obj.error.stack) console.log(obj.error.stack);
+                    console.group('%c%s%c: %s', orange, obj.error.type, normal, obj.error.message);
+                        if (obj.error.stack) {
+                            console.log(obj.error.stack);
+                        }
                         console.dir(obj.error.error);
                     console.groupEnd();
                 }
@@ -772,12 +837,60 @@ var testit = function() {
     this.print = _printConsole;
 
     /**
+     * determinates type of argument
+     * More powerfull then typeof().
+     * @private
+     * @return {String}     type name of the argument
+     *                      undefined, if type was not determinated
+     */
+    function _typeof(argument) {
+        var type;
+        try {
+            switch (argument.constructor) {
+                case Array : type='Array';break;
+                case Boolean : type='Boolean';break;
+                case Date : type='Date';break;
+                case Error : type='Error';break;
+                case EvalError : type='EvalError';break;
+                case Function : type='Function';break;
+                // case Math : type='math';break;
+                case Number : {type=(isNaN(argument))?'NaN':'Number';}break;
+                case Object : type='Object';break;
+                case RangeError : type='RangeError';break;
+                case ReferenceError : type='ReferenceError';break;
+                case RegExp : type='RegExp';break;
+                case String : type='String';break;
+                case SyntaxError : type='SyntaxError';break;
+                case TypeError : type='TypeError';break;
+                case URIError : type='URIError';break;
+                case Window : type='Window';break;
+                case HTMLDocument : type='HTML';break;
+                case NodeList : type='NodeList';break;
+                default : {
+                    if (typeof argument === 'object' &&
+                        argument.toString().indexOf('HTML') !== -1) {
+                        type = 'HTML';
+                    } else {
+                        type = undefined;
+                    }
+                }
+            }
+        } catch (e) {
+            type = (argument === null)? 'null' : typeof argument;
+        }
+        return type;
+    }
+    /**
      * public interface for _typeof
      * @public
      * @example
      *   test.typeof(myVar);
      */
     this.typeof = _typeof;
+    /** list of types, which can be identified by _typeof */
+    var identifiedTypes = ['array', 'boolean', 'date', 'error', 'evalerror', 'function', 'html', 
+                        'nan', 'nodelist', 'null', 'number', 'object', 'rangeerror', 'referenceerror', 
+                        'regexp', 'string', 'syntaxerror', 'typeerror', 'urierror', 'window'];
     
     /**
      * public interface for getTrace(error)
@@ -792,54 +905,6 @@ var testit = function() {
 }  
 
 /**
- * determinates type of argument
- * More powerfull then typeof().
- * @private
- * @return {String}     type name of the argument
- *                      undefined, if type was not determinated
- */
-function _typeof (argument) {
-    var type;
-    try {
-        switch (argument.constructor) {
-            case Array : type='Array';break;
-            case Boolean : type='Boolean';break;
-            case Date : type='Date';break;
-            case Error : type='Error';break;
-            case EvalError : type='EvalError';break;
-            case Function : type='Function';break;
-            // case Math : type='math';break;
-            case Number : {type=(isNaN(argument))?'NaN':'Number';}break;
-            case Object : type='Object';break;
-            case RangeError : type='RangeError';break;
-            case ReferenceError : type='ReferenceError';break;
-            case RegExp : type='RegExp';break;
-            case String : type='String';break;
-            case SyntaxError : type='SyntaxError';break;
-            case TypeError : type='TypeError';break;
-            case URIError : type='URIError';break;
-            case Window : type='Window';break;
-            case HTMLDocument : type='HTML';break;
-            case NodeList : type='NodeList';break;
-            default : {
-                if (typeof argument === 'object'
-                 && argument.toString().indexOf('HTML') !== -1) {
-                    type = 'HTML';
-                } else {
-                    type = undefined;
-                }
-            }
-        }
-    } catch (e) {
-        type = (argument === null)? 'null' : typeof argument;
-    }
-    return type;
-}
-/** list of types, which can be identified by _typeof */
-var identifiedTypes = ['array', 'boolean', 'date', 'error', 'evalerror', 'function', 'html', 'nan', 'nodelist', 'null', 'number', 'object', 'rangeerror', 'referenceerror', 'regexp', 'string', 'syntaxerror', 'typeerror', 'urierror', 'window'];
-    
-
-/**
  * figure out what status will be used
  * Depends on significance:
  * More significant -> less significant.
@@ -849,10 +914,18 @@ var identifiedTypes = ['array', 'boolean', 'date', 'error', 'evalerror', 'functi
  * @return {String}             status which will be set
  */
 function updateStatus(oldstatus,newstatus) {
-    if (oldstatus===undefined) return newstatus;
-    if (newstatus===undefined) return oldstatus;
-    if (oldstatus==='error' || newstatus==='error') return 'error';
-    if (oldstatus==='fail' || newstatus==='fail') return 'fail';
+    if (oldstatus === undefined) {
+        return newstatus;
+    }
+    if (newstatus === undefined) {
+        return oldstatus;
+    }
+    if (oldstatus === 'error' || newstatus === 'error') {
+        return 'error';
+    }
+    if (oldstatus === 'fail' || newstatus === 'fail') {
+        return 'fail';
+    }
     return 'pass';
 }
 
@@ -870,11 +943,13 @@ function generateError(error) {
      * @property {String} stack     result of trace()
      */
     var object = {
-        error: error
-       ,type: _typeof(error)
-       ,message: error.message
+        error: error,
+        type: test.typeof(error),
+        message: error.message
     }
-    if (getTrace(error)) object.stack = getTrace(error);
+    if (getTrace(error)) {
+        object.stack = getTrace(error);
+    }
 
     return object;
 }
@@ -885,27 +960,39 @@ function generateError(error) {
  * @return {String}         list of functions joined by "\n";
  *                          undefined if error.stack is not supported.
  */
-function getTrace(error) {
-    if (!error) error = new Error();
-    if (!error.stack) return;
+function getTrace (error) {
+    if (!error) {
+        error = new Error();
+    }
+    if (!error.stack) {
+        return;
+    }
 
     var stack = '';
-    error.stack.split(/[\n]/).forEach(function(i,n){
+    error.stack.split(/[\n]/).forEach( function(i, n) {
         var addToStack = true;
         /** take off empty strings (FireBug) */
-        if (i==='') addToStack = false;
+        if (i === '') {
+            addToStack = false;
+        }
         /** take off Errors (Chrome) */
-        if (i.indexOf(_typeof(error))!==-1) addToStack = false;
+        if (i.indexOf(test.typeof(error)) !== -1) {
+            addToStack = false;
+        }
         /** take of reference to this function */
-        if (i.indexOf('getTrace')!==-1) addToStack = false;
+        if (i.indexOf('getTrace') !== -1) {
+            addToStack = false;
+        }
         /** take off any references to testit lines */
-        if (i.indexOf('/testit.')!==-1) addToStack = false;
+        if (i.indexOf('/testit.') !== -1) {
+            addToStack = false;
+        }
         /** fill the stack */
         if (addToStack) {
             stack += (stack)?'\n':'';
             stack += i.replace(/((\s+at\s+)|(^@))/,'');
         }
-    })
+    });
     return stack;
 }
 
@@ -922,13 +1009,17 @@ function deepCompare(){function c(d,e){var f;if(isNaN(d)&&isNaN(e)&&"number"==ty
  * @param          val    what to search for 
  * @return {Boolean}      true if found, false otherwise
  */
-function arrayConsist(array, val) {
-    for (var i in array) if (array[i] === val) return true;
+ function arrayConsist (array, val) {
+    for (var i in array) {
+        if (array[i] === val) {
+            return true;
+        }
+    }
     return false;
 }
 /** 
  * new instance of testit, availible from outside.
  */
-scope.test = new testit();
+scope.test = new Testit();
 
 })(this);
